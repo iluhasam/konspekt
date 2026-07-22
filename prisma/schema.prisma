@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Item {
+  id             String   @id @default(cuid())
+  sourceType     String
+  url            String?
+  title          String
+  summary        String
+  keyPoints      String   // JSON-массив строк
+  tags           String   // JSON-массив строк
+  rawText        String?
+  status         String   @default("inbox")
+  telegramUserId String
+  telegramChatId String
+  createdAt      DateTime @default(now())
+
+  @@index([telegramUserId, status])
+}
