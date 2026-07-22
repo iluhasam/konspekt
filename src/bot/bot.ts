@@ -35,9 +35,17 @@ export function createBot(deps: BotDeps): Bot {
   bot.on('message:document', async (ctx) => {
     const doc = ctx.message.document;
     const filename = doc.file_name ?? 'file';
-    const file = await ctx.getFile();
-    const url = `https://api.telegram.org/file/bot${deps.token}/${file.file_path}`;
-    const buffer = Buffer.from(await (await fetch(url)).arrayBuffer());
+    let buffer: Buffer;
+    try {
+      const file = await ctx.getFile();
+      const url = `https://api.telegram.org/file/bot${deps.token}/${file.file_path}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      buffer = Buffer.from(await response.arrayBuffer());
+    } catch {
+      await ctx.reply('⚠️ Не удалось скачать файл (возможно, он больше лимита Telegram ~20 МБ). Пришли файл поменьше или ссылку.');
+      return;
+    }
     await handle(ctx, { kind: 'file', filename, buffer });
   });
 
@@ -49,20 +57,39 @@ export function createBot(deps: BotDeps): Bot {
       return;
     }
     if (parsed.action === 'detail') {
-      const item = await deps.repo.getById(parsed.id);
       await ctx.answerCallbackQuery();
-      if (!item) return;
+      let item: Awaited<ReturnType<typeof deps.repo.getById>>;
+      try {
+        item = await deps.repo.getById(parsed.id);
+      } catch {
+        await ctx.reply('⚠️ Не удалось получить конспект.');
+        return;
+      }
+      if (!item) {
+        await ctx.reply('Элемент не найден — возможно, уже удалён.');
+        return;
+      }
       for (const part of formatDetailed(item)) await ctx.reply(part);
       return;
     }
     if (parsed.action === 'done') {
-      await deps.repo.updateStatus(parsed.id, 'done');
+      try {
+        await deps.repo.updateStatus(parsed.id, 'done');
+      } catch {
+        await ctx.answerCallbackQuery({ text: '⚠️ Не удалось обновить' });
+        return;
+      }
       await ctx.answerCallbackQuery({ text: '✅ Разобрано' });
       await ctx.editMessageReplyMarkup();
       return;
     }
     if (parsed.action === 'delete') {
-      await deps.repo.updateStatus(parsed.id, 'deleted');
+      try {
+        await deps.repo.updateStatus(parsed.id, 'deleted');
+      } catch {
+        await ctx.answerCallbackQuery({ text: '⚠️ Не удалось обновить' });
+        return;
+      }
       await ctx.answerCallbackQuery({ text: '🗑 Удалено' });
       await ctx.deleteMessage().catch(() => {});
     }
