@@ -41,16 +41,21 @@ export async function processInput(
     return { kind: 'error', message: 'Не удалось сделать конспект — попробуй ещё раз.' };
   }
 
-  const item = await deps.repo.createItem({
-    sourceType: content.sourceType,
-    url: content.url,
-    title: content.title,
-    summary: konspekt.summary,
-    keyPoints: konspekt.keyPoints,
-    tags: konspekt.tags,
-    rawText: content.text,
-    telegramUserId: ctx.userId,
-    telegramChatId: ctx.chatId,
-  });
+  let item;
+  try {
+    item = await deps.repo.createItem({
+      sourceType: content.sourceType,
+      url: content.url,
+      title: content.title,
+      summary: konspekt.summary,
+      keyPoints: konspekt.keyPoints,
+      tags: konspekt.tags,
+      rawText: content.text,
+      telegramUserId: ctx.userId,
+      telegramChatId: ctx.chatId,
+    });
+  } catch {
+    return { kind: 'error', message: 'Не удалось сохранить конспект.' };
+  }
   return { kind: 'card', item };
 }

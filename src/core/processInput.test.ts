@@ -79,4 +79,34 @@ describe('processInput', () => {
     const res = await processInput(urlInput, ctx, deps as any);
     expect(res.kind).toBe('error');
   });
+
+  it('сбой сохранения → error', async () => {
+    const deps = makeDeps({
+      repo: {
+        findActiveByUrl: vi.fn().mockResolvedValue(null),
+        createItem: vi.fn().mockRejectedValue(new Error('db down')),
+      },
+    });
+    const res = await processInput(urlInput, ctx, deps as any);
+    expect(res.kind).toBe('error');
+  });
+
+  it('вход без url не проверяет дубликаты', async () => {
+    const findActiveByUrl = vi.fn().mockResolvedValue(null);
+    const deps = makeDeps({
+      extract: vi.fn().mockResolvedValue({
+        sourceType: 'PDF',
+        title: 'f.pdf',
+        text: 'body',
+      }),
+      repo: {
+        findActiveByUrl,
+        createItem: vi.fn().mockResolvedValue({ id: 'i2', kind: 'card' }),
+      },
+    });
+    const fileInput = { kind: 'file' as const, filename: 'f.pdf', buffer: Buffer.from('x') };
+    const res = await processInput(fileInput, ctx, deps as any);
+    expect(res.kind).toBe('card');
+    expect(findActiveByUrl).not.toHaveBeenCalled();
+  });
 });
