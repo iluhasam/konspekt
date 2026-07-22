@@ -38,6 +38,10 @@ describe('formatCard', () => {
     expect(card).toContain('первый');
     expect(card).toContain('#ии');
   });
+  it('экранирует HTML в заголовке', () => {
+    const card = formatCard({ ...item, title: '<b>&x</b>' });
+    expect(card).toContain('&lt;b&gt;&amp;x&lt;/b&gt;');
+  });
 });
 
 describe('formatDetailed', () => {
