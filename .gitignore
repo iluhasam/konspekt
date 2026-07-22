@@ -1,0 +1,29 @@
+# Секреты
+.env
+.env.local
+
+# Зависимости
+node_modules/
+
+# Сборка
+dist/
+build/
+
+# База данных SQLite
+*.db
+*.db-journal
+prisma/*.db
+prisma/*.db-journal
+
+# Логи
+*.log
+npm-debug.log*
+
+# ОС / редакторы
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Obsidian — служебное (сами заметки коммитим)
+obsidian/.obsidian/
