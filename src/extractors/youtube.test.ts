@@ -25,7 +25,7 @@ describe('extractYoutube', () => {
   });
 
   it('бросает ExtractionError при отсутствии субтитров', async () => {
-    mocked.mockRejectedValue(new Error('Transcript is disabled'));
+    mocked.mockRejectedValueOnce(new Error('Transcript is disabled'));
     await expect(extractYoutube('https://youtu.be/abc')).rejects.toBeInstanceOf(
       ExtractionError,
     );
