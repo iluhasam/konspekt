@@ -42,6 +42,11 @@ describe('formatCard', () => {
     const card = formatCard({ ...item, title: '<b>&x</b>' });
     expect(card).toContain('&lt;b&gt;&amp;x&lt;/b&gt;');
   });
+  it('экранирует HTML в сути и тегах', () => {
+    const card = formatCard({ ...item, summary: 'R&D: x < y', tags: ['c++ & rust'] });
+    expect(card).toContain('R&amp;D: x &lt; y');
+    expect(card).toContain('#c++_&amp;_rust');
+  });
 });
 
 describe('formatDetailed', () => {

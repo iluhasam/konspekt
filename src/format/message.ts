@@ -38,9 +38,9 @@ export function splitMessage(text: string, limit = LIMIT): string[] {
 
 export function formatCard(item: ItemView): string {
   const icon = ICONS[item.sourceType];
-  const points = item.keyPoints.map((p) => `• ${p}`).join('\n');
-  const tags = item.tags.map((t) => `#${t.replace(/\s+/g, '_')}`).join(' ');
-  const parts = [`${icon} <b>${escapeHtml(item.title)}</b>`, '', item.summary];
+  const points = item.keyPoints.map((p) => `• ${escapeHtml(p)}`).join('\n');
+  const tags = item.tags.map((t) => `#${escapeHtml(t.replace(/\s+/g, '_'))}`).join(' ');
+  const parts = [`${icon} <b>${escapeHtml(item.title)}</b>`, '', escapeHtml(item.summary)];
   if (points) parts.push('', points);
   if (tags) parts.push('', tags);
   return parts.join('\n');

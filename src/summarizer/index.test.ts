@@ -49,6 +49,14 @@ describe('createSummarizer', () => {
     expect(res.summary).toBe('с');
   });
 
+  it('парсит JSON с текстом-преамбулой', async () => {
+    createMock.mockResolvedValue(
+      reply('Вот конспект:\n```json\n{"summary":"с","keyPoints":[],"tags":[]}\n```'),
+    );
+    const res = await createSummarizer(config)(content);
+    expect(res.summary).toBe('с');
+  });
+
   it('делает один ретрай при ошибке сети', async () => {
     createMock
       .mockRejectedValueOnce(new Error('network'))

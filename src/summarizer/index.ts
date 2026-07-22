@@ -17,12 +17,12 @@ const schema = z.object({
 });
 
 function parseKonspekt(raw: string): Konspekt {
-  const cleaned = raw
-    .trim()
-    .replace(/^```(?:json)?/i, '')
-    .replace(/```$/, '')
-    .trim();
-  return schema.parse(JSON.parse(cleaned));
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if (start === -1 || end === -1 || end < start) {
+    throw new Error('Ответ модели не содержит JSON-объекта');
+  }
+  return schema.parse(JSON.parse(raw.slice(start, end + 1)));
 }
 
 export function createSummarizer(

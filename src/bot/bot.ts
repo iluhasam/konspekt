@@ -35,6 +35,11 @@ export function createBot(deps: BotDeps): Bot {
   bot.on('message:document', async (ctx) => {
     const doc = ctx.message.document;
     const filename = doc.file_name ?? 'file';
+    const MAX_FILE_BYTES = 20 * 1024 * 1024;
+    if (doc.file_size && doc.file_size > MAX_FILE_BYTES) {
+      await ctx.reply('⚠️ Файл больше 20 МБ — Telegram не отдаёт такие через Bot API. Пришли файл поменьше или ссылку.');
+      return;
+    }
     let buffer: Buffer;
     try {
       const file = await ctx.getFile();
@@ -47,6 +52,11 @@ export function createBot(deps: BotDeps): Bot {
       return;
     }
     await handle(ctx, { kind: 'file', filename, buffer });
+  });
+
+  // Фолбэк для остальных типов сообщений (фото, голос, стикеры и т.д.)
+  bot.on('message', async (ctx) => {
+    await ctx.reply('Пришли ссылку (http/https) или файл PDF/DOCX — сделаю конспект.');
   });
 
   // Триаж
@@ -80,7 +90,7 @@ export function createBot(deps: BotDeps): Bot {
         return;
       }
       await ctx.answerCallbackQuery({ text: '✅ Разобрано' });
-      await ctx.editMessageReplyMarkup();
+      await ctx.editMessageReplyMarkup().catch(() => {});
       return;
     }
     if (parsed.action === 'delete') {
